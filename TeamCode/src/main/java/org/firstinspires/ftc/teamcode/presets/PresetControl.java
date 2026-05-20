@@ -2,7 +2,7 @@ package org.firstinspires.ftc.teamcode.presets;
 
 import static org.firstinspires.ftc.teamcode.base.Components.timer;
 
-import org.firstinspires.ftc.teamcode.base.Components;
+import org.firstinspires.ftc.teamcode.base.Components.*;
 import org.firstinspires.ftc.teamcode.base.Components.Actuator;
 import org.firstinspires.ftc.teamcode.base.Components.BotMotor;
 import org.firstinspires.ftc.teamcode.base.Components.BotServo;
@@ -23,7 +23,7 @@ public abstract class PresetControl { //Holds control functions that actuators c
             this.condition = condition;
             this.func = func;
         }
-        public void registerToSystem(Components.ControlSystem<? extends E> system){
+        public void registerToSystem(ControlSystem<? extends E> system){
             super.registerToSystem(system);
             func.registerToSystem(system);
         }
@@ -385,6 +385,16 @@ public abstract class PresetControl { //Holds control functions that actuators c
             if (Math.abs(system.getInstantReference()-currentState)>parentActuator.getErrorTol()){
                 system.setOutput(system.getOutput()+ powerFunc.get()*Math.signum(system.getInstantReference()-currentState));
             }
+        }
+    }
+    public static class CustomControl extends ControlFunc<Actuator<?>>{
+        private final Function<ControlSystem<?>, Double> procedure;
+        public CustomControl(Function<ControlSystem<?>, Double> procedure){
+            this.procedure = procedure;
+        }
+        @Override
+        public void runProcedure() {
+            system.setOutput(procedure.apply(system));
         }
     }
 }
