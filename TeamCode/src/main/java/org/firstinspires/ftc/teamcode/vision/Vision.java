@@ -36,12 +36,6 @@ public class Vision {
         COUNTER_CLOCKWISE_90
     }
 
-    public enum MOTIF {
-        GPP,
-        PGP,
-        PPG
-    }
-
     public Vision(HardwareMap hardwareMap, Telemetry telemetry){
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
         this.telemetry = telemetry;
@@ -61,46 +55,6 @@ public class Vision {
         localizationAprilTags.add(24);
     }
 
-    public List<List<Artifact>> getArtifacts(Pose botPosePedro){
-        if (!limelight.isRunning()) limelight.start();
-        if (limelight.getStatus().getPipelineIndex() != NN_PIPELINE_INDEX) limelight.pipelineSwitch(NN_PIPELINE_INDEX);
-
-        LLResult result = limelight.getLatestResult();
-
-        List<Artifact> groundArtifacts = new ArrayList<>();
-        List<Artifact> classifierArtifacts = new ArrayList<>();
-
-        if (result == null || !result.isValid()){
-            List<List<Artifact>> out = new ArrayList<>();
-
-            out.add(groundArtifacts);
-            out.add(classifierArtifacts);
-
-            return out;
-        }
-
-        for (LLResultTypes.DetectorResult detectorResult : result.getDetectorResults()) {
-            Artifact artifact = new Artifact(detectorResult, cameraOrientation, botPosePedro);
-
-            if (artifact.artifactType == Artifact.ARTIFACT_TYPE.GROUND){
-                groundArtifacts.add(artifact);
-            }
-            else if (artifact.artifactType == Artifact.ARTIFACT_TYPE.CLASSIFIER){
-                classifierArtifacts.add(artifact);
-            }
-        }
-
-        if (classifierArtifacts.size() > 9){
-            classifierArtifacts.subList(9, classifierArtifacts.size()).clear();
-        }
-
-        List<List<Artifact>> out = new ArrayList<>();
-
-        out.add(groundArtifacts);
-        out.add(classifierArtifacts);
-
-        return out;
-    }
 
     public Pose getBotPoseMT1(Pose odometryPose){
         if (!limelight.isRunning()) limelight.start();
@@ -248,26 +202,6 @@ public class Vision {
     }
     public void stopLimelight(){
         limelight.stop();
-    }
-    public Integer getObeliskID(){
-        if (!limelight.isRunning()) limelight.start();
-        if (limelight.getStatus().getPipelineIndex() != APRIL_TAGS_PIPELINE_INDEX) limelight.pipelineSwitch(APRIL_TAGS_PIPELINE_INDEX);
-
-        LLResult result = limelight.getLatestResult();
-
-        if (result != null && result.isValid()){
-            List<LLResultTypes.FiducialResult> aprilTags = result.getFiducialResults();
-
-            for (LLResultTypes.FiducialResult aprilTag : aprilTags){
-                int id = aprilTag.getFiducialId();
-                if (id == 21 || id == 22 || id == 23){
-                    return id;
-                }
-            }
-        }
-
-        telemetry.addLine("ID not in sight");
-        return null;
     }
 
     public Double intakingAngleArtifacts(List<Artifact> artifacts, Pose botPose, int stepDeg) {
